@@ -45,10 +45,7 @@ class NoteController extends Controller
      * Display the specified resource.
      */
     public function show(Note $note)
-    {
-        if (request()->user()->id !== $note->user_id) {
-            abort(403);
-        }
+    {        
         return view('note.show', compact("note"));
     }
 
@@ -76,7 +73,8 @@ class NoteController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy(Note $note)
-    {
+    {    
+        $note->delete();
         return to_route('note.index')->with('message','Note was deleted');
 
     }

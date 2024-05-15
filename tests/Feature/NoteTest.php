@@ -20,15 +20,14 @@ class NoteTest extends TestCase
 
     public function test_user_can_create_note()
     {
-        $this->authenticateUser();
+        $user = $this->authenticateUser();
 
-        $response = $this->post(route('note.store'), [
-            'title' => 'Test Note',
-            'content' => 'This is a test note.'
+        $response = $this->post(route('note.store'), [            
+            'note' => 'This is a test note.',            
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('notes', ['title' => 'Test Note']);
+        $this->assertDatabaseHas('notes', ['note' => 'This is a test note.']);
     }
 
     public function test_user_can_update_note()
@@ -36,24 +35,25 @@ class NoteTest extends TestCase
         $user = $this->authenticateUser();
         $note = Note::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->put(route('note.update', $note), [
-            'title' => 'Updated Note',
-            'content' => 'This note has been updated.'
+        $response = $this->patch(route('note.update', $note), [            
+            'note' => 'This note has been updated.'
         ]);
 
+        $note->refresh();
+        
         $response->assertRedirect();
-        $this->assertDatabaseHas('notes', ['title' => 'Updated Note']);
+        $this->assertEquals('This note has been updated.', $note->note);
     }
 
     public function test_user_can_delete_note()
-    {
+    {        
         $user = $this->authenticateUser();
         $note = Note::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->delete(route('note.destroy', $note));
+        $response = $this->delete(route('note.destroy', $note));        
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('notes', ['id' => $note->id]);
+        $this->assertModelMissing($note);
     }
 
     public function test_user_can_view_note()
@@ -64,6 +64,6 @@ class NoteTest extends TestCase
         $response = $this->get(route('note.show', $note));
 
         $response->assertStatus(200);
-        $response->assertSee($note->title);
+        $response->assertSee($note->note); 
     }
 }
